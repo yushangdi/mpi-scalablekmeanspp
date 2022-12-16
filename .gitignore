@@ -1,0 +1,3 @@
+*.o
+Image_data/*
+*.out

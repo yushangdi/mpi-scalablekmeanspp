@@ -109,3 +109,53 @@ Northwestern University
 
 Sep. 17, 2005
 
+============ does not work
+
+
+git clone https://github.com/wch/r-source.git
+cd r-source
+./configure
+ cd src/nmath/standalone
+
+
+
+sudo apt install r-base
+install.packages("Rcpp")
+
+wget https://github.com/PCRE2Project/pcre2/releases/download/pcre2-10.42/pcre2-10.42.tar.bz2
+tar -xjvf pcre2-10.42.tar.bz2
+cd pcre2-10.42/
+./configure
+make
+sudo make install
+
+sudo apt install  libcurl4-openssl-dev
+
+wget https://mirror.las.iastate.edu/CRAN/src/base/R-4/R-4.2.2.tar.gz
+tar -xf R-4.2.2.tar.gz 
+cd R-4.2.2
+./configure --with-readline=no --with-x=no
+make
+cd src/nmath/standalone
+make
+=======================
+sudo apt install mpich
+https://github.com/statslabs/rmath
+1. Clone the repository.
+   ```sh
+   git clone git@github.com:statslabs/rmath.git
+   ```
+2. Configure the project.
+   ```sh
+   cd rmath
+   mkdir build && cd build
+   cmake ..
+   ```
+3. Compile and install the library.
+   ```sh
+   make
+   make install
+   ```
+
+change `-lRmath` to `/home/ubuntu/rmath/build/librmath.a`
+

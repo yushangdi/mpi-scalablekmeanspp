@@ -45,7 +45,7 @@ OPTFLAGS    = -g -pg
 INCFLAGS    = -I. -I/usr/include/R/
 CFLAGS      = $(OPTFLAGS) $(DFLAGS) $(INCFLAGS) -DBLOCK_SHARED_MEM_OPTIMIZATION=1
 LDFLAGS     = $(OPTFLAGS)
-LIBS        = -lm -lRmath
+LIBS        = /home/ubuntu/rmath/build/librmath.a -lm # -lRmath
 
 CC          = gcc
 MPICC       = mpicc
