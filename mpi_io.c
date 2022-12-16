@@ -58,6 +58,7 @@ double** mpi_read(int       isBinaryFile,  /* flag: 0 or 1 */
         MPI_File_read(fh, numObjs,   1, MPI_INT, &status);
         MPI_File_read(fh, numCoords, 1, MPI_INT, &status);
 
+        printf("numObjs: %d (numCoords: %d)\n",*numObjs,*numCoords);
         if (*numObjs <= 0 || *numCoords <= 0) {
             printf("Error: file format (%s)\n",filename);
             MPI_Finalize();
@@ -67,7 +68,7 @@ double** mpi_read(int       isBinaryFile,  /* flag: 0 or 1 */
         divd = (*numObjs) / nproc;
         rem  = (*numObjs) % nproc;
         len  = (rank < rem) ? rank*(divd+1) : rank*divd + rem;
-        disp = 2 * sizeof(int) + len * (*numCoords) * sizeof(float);
+        disp = 2 * sizeof(int) + len * (*numCoords) * sizeof(double);
 
         /* adjust numObjs to be local size */
         (*numObjs) = (rank < rem) ? divd+1 : divd;
@@ -81,13 +82,13 @@ double** mpi_read(int       isBinaryFile,  /* flag: 0 or 1 */
             objects[i] = objects[i-1] + (*numCoords);
 
         /* define a file type for file view */
-        MPI_Type_contiguous((*numObjs), MPI_FLOAT, &filetype);
+        MPI_Type_contiguous((*numObjs), MPI_DOUBLE, &filetype);
         MPI_Type_commit(&filetype);
 
-        MPI_File_set_view(fh, disp, MPI_FLOAT, filetype, "native",
+        MPI_File_set_view(fh, disp, MPI_DOUBLE, filetype, "native",
                           MPI_INFO_NULL);
         MPI_File_read_all(fh, objects[0], (*numObjs)*(*numCoords),
-                          MPI_FLOAT, &status);
+                          MPI_DOUBLE, &status);
         MPI_Type_free(&filetype);
         MPI_File_close(&fh);
     }

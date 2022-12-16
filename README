@@ -80,7 +80,7 @@ binary.
     o The first 4-byte integer must be the number of data points.
     o The second integer must be the number of coordinates.
     o The rest of the file contains the coordinates of all data 
-      points and each coordinate is of type 4-byte float.
+      points and each coordinate is of type 8-byte float.
 
 Output files: There are two output files:
   * Coordinates of cluster centers
@@ -159,3 +159,4 @@ https://github.com/statslabs/rmath
 
 change `-lRmath` to `/home/ubuntu/rmath/build/librmath.a`
 
+./mpi_main -i Image_data/color100.txt -n 3 -o
