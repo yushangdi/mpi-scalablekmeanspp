@@ -221,7 +221,7 @@ int main(int argc, char **argv) {
         /* get the max timing measured among all processes */
         MPI_Reduce(&io_timing, &max_io_timing, 1, MPI_DOUBLE,
                    MPI_MAX, 0, MPI_COMM_WORLD);
-	MPI_Reduce(&initialization_timing, &max_initialization_timing, 1, MPI_DOUBLE,
+	    MPI_Reduce(&initialization_timing, &max_initialization_timing, 1, MPI_DOUBLE,
                    MPI_MAX, 0, MPI_COMM_WORLD);
         MPI_Reduce(&clustering_timing, &max_clustering_timing, 1, MPI_DOUBLE,
                    MPI_MAX, 0, MPI_COMM_WORLD);

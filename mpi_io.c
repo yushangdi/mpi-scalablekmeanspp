@@ -58,7 +58,7 @@ double** mpi_read(int       isBinaryFile,  /* flag: 0 or 1 */
         MPI_File_read(fh, numObjs,   1, MPI_INT, &status);
         MPI_File_read(fh, numCoords, 1, MPI_INT, &status);
 
-        printf("numObjs: %d (numCoords: %d)\n",*numObjs,*numCoords);
+        // printf("numObjs: %d (numCoords: %d)\n",*numObjs,*numCoords);
         if (*numObjs <= 0 || *numCoords <= 0) {
             printf("Error: file format (%s)\n",filename);
             MPI_Finalize();
@@ -187,7 +187,7 @@ int mpi_write(int        isOutFileBinary, /* flag: 0 or 1 */
     if (rank == 0) {
         printf("Writing coordinates of K=%d cluster centers to file \"%s.cluster_centres\"\n",
                numClusters, delim);
-        sprintf(outFileName, "%s.cluster_centres", filename);
+        sprintf(outFileName, "%s.cluster_centres_%d", filename, nproc);
         err = MPI_File_open(MPI_COMM_SELF, outFileName, MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &fh);
         if (err != MPI_SUCCESS) {
             char errstr[MPI_MAX_ERROR_STRING];
@@ -250,7 +250,7 @@ int mpi_write(int        isOutFileBinary, /* flag: 0 or 1 */
             int divd = totalNumObjs / nproc;
             int rem  = totalNumObjs % nproc;
 
-            sprintf(outFileName, "%s.membership", filename);
+            sprintf(outFileName, "%s.membership_%d", filename, nproc);
             err = MPI_File_open(MPI_COMM_SELF, outFileName, MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &fh);
             if (err != MPI_SUCCESS) {
                 char errstr[MPI_MAX_ERROR_STRING];

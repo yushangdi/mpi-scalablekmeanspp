@@ -1,3 +1,4 @@
 *.o
 Image_data/*
 *.out
+outputs/*
