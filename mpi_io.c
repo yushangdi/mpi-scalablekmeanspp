@@ -218,7 +218,7 @@ int mpi_write(int        isOutFileBinary, /* flag: 0 or 1 */
 
     /* output: the closest cluster centre to each of the data points --------*/
     if (rank == 0)
-        printf("Writing membership of N=%d data objects to file \"%s.membership\"\n",
+        printf("Writing membership of N=%d data objects to file \"%s.membership_%d\"\n",
                totalNumObjs, delim, nproc);
 
     if (isOutFileBinary) {

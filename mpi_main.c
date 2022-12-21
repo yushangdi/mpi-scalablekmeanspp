@@ -170,6 +170,7 @@ int main(int argc, char **argv) {
     /*         for (j=0; j<numCoords; j++) */
     /*             clusters[i][j] = objects[i][j]; */
     /* } */
+    if (rank == 0) {printf("Dims: %d, %d\n", totalNumObjs, numCoords);}
 
     /* instead use mpi_scalablekmeanspp */
     set_seed(1111+rank,12345+rank);

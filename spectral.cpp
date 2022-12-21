@@ -1,6 +1,8 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <cstring>
+#include <cstdlib>
 
 #include <omp.h>
 
@@ -43,11 +45,27 @@ parlay::sequence<double> readDataFromFile(char const *fname, int& n, int& d) {
   return W;
 }
 
-// ./a.out ./Image_data/test.dat 
+
+void writeDataBinary(char const *filename, Eigen::MatrixXd& X){
+  int n = X.rows();
+  int d = X.cols();
+  std::ofstream fout(filename, std::ios::binary);
+  fout.write(reinterpret_cast<char*>(&n), sizeof(int));
+  fout.write(reinterpret_cast<char*>(&d), sizeof(int));
+  for (int i = 0; i < n; i++) {
+    for (int j = 0; j < d; j++) {
+    fout.write(reinterpret_cast<char*>(&X(i, j)), sizeof(double));
+    }
+  }
+  fout.close();
+}
+
+// ./a.out ./Image_data/test.dat 2 ./Image_data/test_emb.dat 
 int main(int argc, char *argv[]) {
   char* filename = argv[1];
   // k is the number of nearest neighbors to connect to each point
-  int k = argv[2];
+  int k = atoi(argv[2]);
+  char* out_filename = argv[3];
   int n;
   int d;
 
@@ -68,10 +86,19 @@ int main(int argc, char *argv[]) {
   // Create a matrix of data points
   MatrixXd X(n, d);
   // X << 1, 2, 3;
-  parlay::parallel_for(0,((long)n)*d,[&](long i){
-    X(i) = W[i];
+  parlay::parallel_for(0,n,[&](long i){
+    parlay::parallel_for(0,d,[&](long j){
+      X(i, j) = W[i*d+j];
+    });
   });
+  
+  // std::cout << "X" << X << std::endl;
 
   Eigen::MatrixXd embedded = SpectralEmbedding(X, k);
   std::cout << embedded << std::endl;
+
+  if(out_filename){
+    std::cout << "writing output to " << out_filename << std::endl;
+    writeDataBinary(out_filename, embedded);
+  }
 }

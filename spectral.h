@@ -1,6 +1,8 @@
 #include <iostream>
 #include <Eigen/Dense>
 #include <omp.h>
+#include "parlay/parallel.h"
+#include "parlay/primitives.h"
 
 //  git clone https://gitlab.com/libeigen/eigen.git
 //  g++ -g -I ../eigen/ spectral.cpp -fopenmp
@@ -40,8 +42,9 @@ Eigen::MatrixXd SpectralEmbedding(MatrixXd &X, int k) {
     // Find the k-nearest neighbors of point i using a nearest neighbor search algorithm
     VectorXi indices = VectorXi::LinSpaced(X.rows(), 0, X.rows() - 1);
 
-    //TODO: change to parallel sort
-    std::sort(indices.data(), indices.data() + indices.size(), 
+    //parallel sort
+    auto s = parlay::make_slice(indices.data(), indices.data() + indices.size());
+    parlay::sort_inplace(s, 
         [&](int i1, int i2) { return (X.row(i) - X.row(i1)).squaredNorm() < (X.row(i) - X.row(i2)).squaredNorm(); });
     indices.conservativeResize(k);
 
