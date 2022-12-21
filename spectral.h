@@ -1,5 +1,6 @@
 #include <iostream>
 #include <Eigen/Dense>
+#include <Spectra/SymEigsSolver.h>
 #include <omp.h>
 #include "parlay/parallel.h"
 #include "parlay/primitives.h"
@@ -30,8 +31,35 @@ Eigen::MatrixXd deterministicVectorSignFlip(const Eigen::MatrixXd& u) {
   return uFlipped;
 }
 
+Eigen::MatrixXd getEigenVectors(MatrixXd &L, int n_components){
+  // Compute the eigenvectors of the Laplacian matrix using Eigen's SelfAdjointEigenSolver
+  SelfAdjointEigenSolver<MatrixXd> eigensolver(L);
+  if (eigensolver.info() != Success)
+  {
+    std::cerr << "Failed to compute eigenvectors." << std::endl;
+    exit(1);
+  }
 
-Eigen::MatrixXd SpectralEmbedding(MatrixXd &X, int k) {
+  // Select the eigenvectors that correspond to the k smallest eigenvalues as the dimensions of the low-dimensional embedding
+  MatrixXd V = eigensolver.eigenvectors();
+  VectorXd U = eigensolver.eigenvalues();
+
+  //sort eigenvalues/vectors
+	int n = L.cols();
+	for (int i = 0; i < n - 1; ++i) {
+		int kk;
+		U.segment(i, n - i).maxCoeff(&kk);
+		if (kk > 0) {
+			std::swap(U[i], U[kk + i]);
+			V.col(i).swap(V.col(kk + i));
+		}
+	}
+  auto embedding = V.rightCols(n_components);
+  return embedding;
+}
+
+
+Eigen::MatrixXd SpectralEmbedding(MatrixXd &X, int k, int n_components) {
 
   // int num_threads = Eigen::nbThreads();
   std::cout << "embedding start" << std::endl;
@@ -90,35 +118,9 @@ Eigen::MatrixXd SpectralEmbedding(MatrixXd &X, int k) {
   }
 
   t.next("laplacian built");
-  // Compute the eigenvectors of the Laplacian matrix using Eigen's SelfAdjointEigenSolver
-  SelfAdjointEigenSolver<MatrixXd> eigensolver(L);
-  if (eigensolver.info() != Success)
-  {
-    std::cerr << "Failed to compute eigenvectors." << std::endl;
-    exit(1);
-  }
 
-  // Select the eigenvectors that correspond to the k smallest eigenvalues as the dimensions of the low-dimensional embedding
-  MatrixXd V = eigensolver.eigenvectors();
-  VectorXd U = eigensolver.eigenvalues();
-
+  auto embedding = getEigenVectors(L, n_components);
   t.next("eigens computed");
-
-  //sort eigenvalues/vectors
-	int n = X.cols();
-	for (int i = 0; i < n - 1; ++i) {
-		int kk;
-		U.segment(i, n - i).maxCoeff(&kk);
-		if (kk > 0) {
-			std::swap(U[i], U[kk + i]);
-			V.col(i).swap(V.col(kk + i));
-		}
-	}
-  // std::cout << V.leftCols(k) << std::endl;
-
-  auto embedding = V.rightCols(k);//.transpose();
-
-  // std::cout << embedding << std::endl;
   auto embedding_normed = embedding.array().colwise() * degrees.array();
 
   // std::cout << embedding_normed << std::endl;
@@ -129,5 +131,5 @@ Eigen::MatrixXd SpectralEmbedding(MatrixXd &X, int k) {
   Eigen::MatrixXd embedded = uFlipped.transpose();
 
   t.next("embedding computed");
-  return std::move(embedded);
+  return embedded;
 }
