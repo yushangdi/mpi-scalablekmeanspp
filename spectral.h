@@ -1,6 +1,6 @@
 #include <iostream>
 #include <Eigen/Dense>
-#include <Spectra/SymEigsSolver.h>
+// #include <Spectra/SymEigsSolver.h>
 #include <omp.h>
 #include "parlay/parallel.h"
 #include "parlay/primitives.h"
@@ -59,13 +59,21 @@ Eigen::MatrixXd getEigenVectors(MatrixXd &L, int n_components){
 }
 
 
-Eigen::MatrixXd SpectralEmbedding(MatrixXd &X, int k, int n_components) {
+// Eigen::MatrixXd getEigenVectors2(MatrixXd &L, int n_components){
 
-  // int num_threads = Eigen::nbThreads();
-  std::cout << "embedding start" << std::endl;
-  parlay::internal::timer t; t.start();
-  //  Construct the nearest neighbor graph
-  MatrixXd A = MatrixXd::Zero(X.rows(), X.rows());
+//   using OpType = Spectra::DenseSymMatProd<double>;
+//   OpType op(L);
+//   // Construct eigen solver object, requesting the largest three eigenvalues
+//   Spectra::SymEigsSolver<OpType> eigs(op, n_components, L.cols());
+ 
+//   // Initialize and compute
+//   eigs.init();
+//   int nconv = eigs.compute(Spectra::SortRule::LargestAlge);
+//   MatrixXd embedding = eigs.eigenvectors();
+//   return embedding;
+// }
+
+void buildKNNGraph(MatrixXd& A, MatrixXd &X, int k){
   #pragma omp parallel for
   for (int i = 0; i < X.rows(); i++)
   {
@@ -87,6 +95,17 @@ Eigen::MatrixXd SpectralEmbedding(MatrixXd &X, int k, int n_components) {
       A(i, indices(j)) = 1;
     }
   }
+}
+
+Eigen::MatrixXd SpectralEmbedding(MatrixXd &X, int k, int n_components) {
+
+  // int num_threads = Eigen::nbThreads();
+  std::cout << "embedding start" << std::endl;
+  parlay::internal::timer t; t.start();
+  //  Construct the nearest neighbor graph
+  MatrixXd A = MatrixXd::Zero(X.rows(), X.rows());
+
+  buildKNNGraph(A, X, k);
 
   t.next("kNN graph built");
   // // make it symmetric as here: https://github.com/scikit-learn/scikit-learn/blob/dc580a8ef5ee2a8aea80498388690e2213118efd/sklearn/manifold/_spectral_embedding.py#L642

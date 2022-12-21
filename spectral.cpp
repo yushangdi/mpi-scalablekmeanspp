@@ -13,8 +13,9 @@
 #include "parlay/internal/get_time.h"
 
 //  git clone https://gitlab.com/libeigen/eigen.git
-//  g++ -std=c++17 -mcx16 -Ieigen/ -I../par-filtered-graph-clustering/parlaylib/include  -DPARLAY_OPENMP spectral.cpp  -fopenmp
-// OMP_NUM_THREADS=n ./a.out
+// -Ispectra/include 
+//  g++ -O3 -std=c++17 -mcx16 -Ieigen/ -I../par-filtered-graph-clustering/parlaylib/include  -DPARLAY_OPENMP spectral.cpp  -fopenmp -msse2
+// OMP_NUM_THREADS=n ./a.out /home/ubuntu/datasets/UCR/Mallat_X.dat 330 8 ./outputs/Mallat_emb.dat
 // https://eigen.tuxfamily.org/dox/TopicMultiThreading.html
 using namespace Eigen;
 
@@ -65,7 +66,8 @@ int main(int argc, char *argv[]) {
   char* filename = argv[1];
   // k is the number of nearest neighbors to connect to each point
   int k = atoi(argv[2]);
-  char* out_filename = argv[3];
+  int n_components = atoi(argv[3]);
+  char* out_filename = argv[4];
   int n;
   int d;
 
@@ -96,7 +98,7 @@ int main(int argc, char *argv[]) {
   // std::cout << "X" << X << std::endl;
   t.next("read");
 
-  Eigen::MatrixXd embedded = SpectralEmbedding(X, k);
+  Eigen::MatrixXd embedded = SpectralEmbedding(X, k, n_components);
   // std::cout << embedded << std::endl;
   t.next("embedding");
 
