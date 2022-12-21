@@ -59,3 +59,4 @@ done
 
 
 # https://scikit-learn.org/stable/computing/parallelism.html#parallelism
+# ./a.out /home/ubuntu/datasets/UCR/Mallat_X.dat 330 ./outputs/Mallat_emb.dat

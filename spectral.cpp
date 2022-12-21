@@ -10,10 +10,10 @@
 #include "spectral.h"
 #include "parlay/parallel.h"
 #include "parlay/primitives.h"
-
+#include "parlay/internal/get_time.h"
 
 //  git clone https://gitlab.com/libeigen/eigen.git
-//  g++ -std=c++17 -mcx16 -I../eigen/ -I /home/ubuntu/tmfg_benchmark/par_tmfg/parlaylib/include  -DPARLAY_OPENMP spectral.cpp  -fopenmp
+//  g++ -std=c++17 -mcx16 -Ieigen/ -I../par-filtered-graph-clustering/parlaylib/include  -DPARLAY_OPENMP spectral.cpp  -fopenmp
 // OMP_NUM_THREADS=n ./a.out
 // https://eigen.tuxfamily.org/dox/TopicMultiThreading.html
 using namespace Eigen;
@@ -70,6 +70,7 @@ int main(int argc, char *argv[]) {
   int d;
 
   /* read data points from file ------------------------------------------*/
+  parlay::internal::timer t; t.start();
   parlay::sequence<double> W = readDataFromFile(filename, n, d);
   std::cout << "input dims: " << n << " " << d << " " << std::endl;
   if(_debug){
@@ -93,12 +94,15 @@ int main(int argc, char *argv[]) {
   });
   
   // std::cout << "X" << X << std::endl;
+  t.next("read");
 
   Eigen::MatrixXd embedded = SpectralEmbedding(X, k);
-  std::cout << embedded << std::endl;
+  // std::cout << embedded << std::endl;
+  t.next("embedding");
 
   if(out_filename){
     std::cout << "writing output to " << out_filename << std::endl;
     writeDataBinary(out_filename, embedded);
+    t.next("output");
   }
 }

@@ -2,3 +2,4 @@
 Image_data/*
 *.out
 outputs/*
+mpi_main

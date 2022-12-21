@@ -3,6 +3,7 @@
 #include <omp.h>
 #include "parlay/parallel.h"
 #include "parlay/primitives.h"
+#include "parlay/internal/get_time.h"
 
 //  git clone https://gitlab.com/libeigen/eigen.git
 //  g++ -g -I ../eigen/ spectral.cpp -fopenmp
@@ -33,7 +34,8 @@ Eigen::MatrixXd deterministicVectorSignFlip(const Eigen::MatrixXd& u) {
 Eigen::MatrixXd SpectralEmbedding(MatrixXd &X, int k) {
 
   // int num_threads = Eigen::nbThreads();
-
+  std::cout << "embedding start" << std::endl;
+  parlay::internal::timer t; t.start();
   //  Construct the nearest neighbor graph
   MatrixXd A = MatrixXd::Zero(X.rows(), X.rows());
   #pragma omp parallel for
@@ -43,9 +45,11 @@ Eigen::MatrixXd SpectralEmbedding(MatrixXd &X, int k) {
     VectorXi indices = VectorXi::LinSpaced(X.rows(), 0, X.rows() - 1);
 
     //parallel sort
-    auto s = parlay::make_slice(indices.data(), indices.data() + indices.size());
-    parlay::sort_inplace(s, 
-        [&](int i1, int i2) { return (X.row(i) - X.row(i1)).squaredNorm() < (X.row(i) - X.row(i2)).squaredNorm(); });
+    // auto s = parlay::make_slice(indices.data(), indices.data() + indices.size());
+    // parlay::sort_inplace(s, 
+    //     [&](int i1, int i2) { return (X.row(i) - X.row(i1)).squaredNorm() < (X.row(i) - X.row(i2)).squaredNorm(); });
+    std::sort(indices.data(), indices.data() + indices.size(),
+          [&](int i1, int i2) { return (X.row(i) - X.row(i1)).squaredNorm() < (X.row(i) - X.row(i2)).squaredNorm(); });
     indices.conservativeResize(k);
 
     // Connect point i to its k-nearest neighbors
@@ -56,6 +60,7 @@ Eigen::MatrixXd SpectralEmbedding(MatrixXd &X, int k) {
     }
   }
 
+  t.next("kNN graph built");
   // // make it symmetric as here: https://github.com/scikit-learn/scikit-learn/blob/dc580a8ef5ee2a8aea80498388690e2213118efd/sklearn/manifold/_spectral_embedding.py#L642
   // // have to assign to a different variable due to aliasing issue
   MatrixXd B = (A + A.transpose())/2;
@@ -84,7 +89,7 @@ Eigen::MatrixXd SpectralEmbedding(MatrixXd &X, int k) {
     L(i, i) = -1.0;
   }
 
-
+  t.next("laplacian built");
   // Compute the eigenvectors of the Laplacian matrix using Eigen's SelfAdjointEigenSolver
   SelfAdjointEigenSolver<MatrixXd> eigensolver(L);
   if (eigensolver.info() != Success)
@@ -96,6 +101,8 @@ Eigen::MatrixXd SpectralEmbedding(MatrixXd &X, int k) {
   // Select the eigenvectors that correspond to the k smallest eigenvalues as the dimensions of the low-dimensional embedding
   MatrixXd V = eigensolver.eigenvectors();
   VectorXd U = eigensolver.eigenvalues();
+
+  t.next("eigens computed");
 
   //sort eigenvalues/vectors
 	int n = X.cols();
@@ -120,5 +127,7 @@ Eigen::MatrixXd SpectralEmbedding(MatrixXd &X, int k) {
   Eigen::MatrixXd uFlipped = deterministicVectorSignFlip(embedding_normed.transpose());
 
   Eigen::MatrixXd embedded = uFlipped.transpose();
+
+  t.next("embedding computed");
   return std::move(embedded);
 }
