@@ -185,8 +185,8 @@ int mpi_write(int        isOutFileBinary, /* flag: 0 or 1 */
     /* output: the coordinates of the cluster centres ----------------------*/
     /* only proc 0 do this, because clusters[] are the same across all proc */
     if (rank == 0) {
-        printf("Writing coordinates of K=%d cluster centers to file \"%s.cluster_centres\"\n",
-               numClusters, delim);
+        printf("Writing coordinates of K=%d cluster centers to file \"%s.cluster_centres_%d\"\n",
+               numClusters, delim, nproc);
         sprintf(outFileName, "%s.cluster_centres_%d", filename, nproc);
         err = MPI_File_open(MPI_COMM_SELF, outFileName, MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &fh);
         if (err != MPI_SUCCESS) {
@@ -219,10 +219,10 @@ int mpi_write(int        isOutFileBinary, /* flag: 0 or 1 */
     /* output: the closest cluster centre to each of the data points --------*/
     if (rank == 0)
         printf("Writing membership of N=%d data objects to file \"%s.membership\"\n",
-               totalNumObjs, delim);
+               totalNumObjs, delim, nproc);
 
     if (isOutFileBinary) {
-        sprintf(outFileName, "%s.membership", filename);
+        sprintf(outFileName, "%s.membership_%d", filename, nproc);
         err = MPI_File_open(comm, outFileName, MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &fh);
         if (err != MPI_SUCCESS) {
             char errstr[MPI_MAX_ERROR_STRING];

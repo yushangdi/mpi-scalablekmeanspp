@@ -52,13 +52,10 @@ ind=0
 for dataset in "${datasets[@]}"; do
     command="mpiexec -np ${wk} ./mpi_main -i /home/ubuntu/datasets/UCR/${dataset}_X.dat -b -n ${num_clusters[$ind]} -o > outputs/${dataset}_${wk}th_kmeans.txt"
     echo "$command"
-    # eval "$command"
+    eval "$command"
     let ind++
 done
 done
 
 
 # https://scikit-learn.org/stable/computing/parallelism.html#parallelism
-
-
-#  
